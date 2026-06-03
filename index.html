@@ -7,6 +7,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Lab 9</title>
 
+  <script src="https://cdn.trackjs.com/agent/v3/latest/t.js"></script>
+  <script>
+    window.TrackJS && TrackJS.install({
+      token: "f25bc8e49d344e5bb8c62e900bb769d7"
+    });
+  </script>
+
   <style>
     button {
       margin: 3px;
@@ -54,16 +61,22 @@
     <form>
       <fieldset>
         <legend>Error Calculator</legend>
+
         <input name="first-num" id="first-num" />
+
         <select name="operator" id="operator">
           <option>+</option>
           <option>-</option>
           <option>*</option>
           <option>/</option>
         </select>
+
         <input name="second-num" id="second-num" />
+
         <button id="calculate">Calculate</button>
+
         <br />
+
         <output></output>
       </fieldset>
     </form>
@@ -89,19 +102,174 @@
 
   <script>
     let form = document.querySelector('form');
+
+    class CalculationError extends Error {
+      constructor(message) {
+        super(message);
+        this.name = 'CalculationError';
+      }
+    }
+
     form.addEventListener('submit', e => {
       e.preventDefault();
+
       let output = document.querySelector('output');
       let firstNum = document.querySelector('#first-num').value;
       let secondNum = document.querySelector('#second-num').value;
       let operator = document.querySelector('#operator').value;
-      output.innerHTML = eval(`${firstNum} ${operator} ${secondNum}`);
+
+      try {
+        if (firstNum === '' || secondNum === '') {
+          throw new CalculationError('Both number inputs are required.');
+        }
+
+        firstNum = Number(firstNum);
+        secondNum = Number(secondNum);
+
+        if (Number.isNaN(firstNum) || Number.isNaN(secondNum)) {
+          throw new CalculationError('Inputs must be valid numbers.');
+        }
+
+        if (operator === '/' && secondNum === 0) {
+          throw new CalculationError('Cannot divide by zero.');
+        }
+
+        let result;
+
+        if (operator === '+') {
+          result = firstNum + secondNum;
+        } else if (operator === '-') {
+          result = firstNum - secondNum;
+        } else if (operator === '*') {
+          result = firstNum * secondNum;
+        } else if (operator === '/') {
+          result = firstNum / secondNum;
+        } else {
+          throw new CalculationError('Invalid operator selected.');
+        }
+
+        output.innerHTML = result;
+        console.log('Calculation successful:', result);
+
+      } catch (error) {
+        output.innerHTML = 'Error: ' + error.message;
+        console.error('Caught calculation error:', error);
+
+        if (window.TrackJS) {
+          TrackJS.track(error);
+        }
+
+      } finally {
+        console.log('Calculation attempt finished.');
+      }
     });
 
     let errorBtns = Array.from(document.querySelectorAll('#error-btns > button'));
 
-    // Start your code here
-    // You may move this JS to another file if you wish
+    // Global error handler
+    window.onerror = function (message, source, lineno, colno, error) {
+      console.log('Global error caught by window.onerror');
+      console.log('Message:', message);
+      console.log('Source:', source);
+      console.log('Line:', lineno);
+      console.log('Column:', colno);
+      console.log('Error object:', error);
+
+      return false;
+    };
+
+    errorBtns[0].addEventListener('click', () => {
+      console.log('Console Log Demo: This is a normal log message.');
+    });
+
+    errorBtns[1].addEventListener('click', () => {
+      console.error('Console Error Demo: This is an error message.');
+
+      if (window.TrackJS) {
+        TrackJS.track('Console Error Demo was clicked.');
+      }
+    });
+
+    errorBtns[2].addEventListener('click', () => {
+      console.count('Console Count Demo');
+    });
+
+    errorBtns[3].addEventListener('click', () => {
+      console.warn('Console Warn Demo: This is a warning message.');
+    });
+
+    errorBtns[4].addEventListener('click', () => {
+      let firstNum = document.querySelector('#first-num').value;
+      console.assert(firstNum !== '', 'Console Assert Demo: first number is empty.');
+    });
+
+    errorBtns[5].addEventListener('click', () => {
+      console.clear();
+    });
+
+    errorBtns[6].addEventListener('click', () => {
+      let calculateBtn = document.querySelector('#calculate');
+      console.dir(calculateBtn);
+    });
+
+    errorBtns[7].addEventListener('click', () => {
+      let form = document.querySelector('form');
+      console.dirxml(form);
+    });
+
+    errorBtns[8].addEventListener('click', () => {
+      console.group('Console Group Demo');
+      console.log('This message is inside the group.');
+      console.log('Calculator form:', document.querySelector('form'));
+    });
+
+    errorBtns[9].addEventListener('click', () => {
+      console.log('Ending console group.');
+      console.groupEnd();
+    });
+
+    errorBtns[10].addEventListener('click', () => {
+      const calculatorData = [
+        { input: '10 + 5', result: 15 },
+        { input: '10 - 5', result: 5 },
+        { input: '10 * 5', result: 50 },
+        { input: '10 / 5', result: 2 }
+      ];
+
+      console.table(calculatorData);
+    });
+
+    errorBtns[11].addEventListener('click', () => {
+      console.time('Timer Demo');
+      console.log('Timer started.');
+    });
+
+    errorBtns[12].addEventListener('click', () => {
+      console.timeEnd('Timer Demo');
+    });
+
+    errorBtns[13].addEventListener('click', () => {
+      function firstFunction() {
+        secondFunction();
+      }
+
+      function secondFunction() {
+        thirdFunction();
+      }
+
+      function thirdFunction() {
+        console.trace('Console Trace Demo');
+      }
+
+      firstFunction();
+    });
+
+    errorBtns[14].addEventListener('click', () => {
+      let user = null;
+
+      // This creates a real global error outside try/catch.
+      console.log(user.name);
+    });
   </script>
 </body>
 
